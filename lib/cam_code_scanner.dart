@@ -150,22 +150,6 @@ class _CamCodeScannerState extends State<CamCodeScanner> {
                         height: widget.height,
                         child: _webcamWidget,
                       ),
-                      Container(
-                        width: widget.width,
-                        height: (widget.height / 2) - (widget.height / 8),
-                        color: widget.backgroundColor,
-                        child: Text(''),
-                      ),
-                      Positioned(
-                        top: (widget.height / 2) + (widget.height / 8),
-                        left: 0,
-                        child: Container(
-                          width: widget.width,
-                          height: (widget.height / 2) - (widget.height / 8),
-                          color: widget.backgroundColor,
-                          child: Text(''),
-                        ),
-                      ),
                       if (widget.showDebugFrames)
                         Positioned(
                           top: widget.height * .4,
@@ -188,13 +172,6 @@ class _CamCodeScannerState extends State<CamCodeScanner> {
                             ),
                           ),
                         ),
-                      Align(
-                        alignment: Alignment.bottomCenter,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(barcode),
-                        ),
-                      ),
                     ],
                   )
                 : CircularProgressIndicator(),

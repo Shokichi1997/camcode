@@ -114,8 +114,8 @@ class CamcodeWeb {
 
     // Create a video element which will be provided with stream source
     _webcamVideoElement = VideoElement()
-      ..width = 1920
-      ..height = 1080
+      ..width = width.toInt()
+      ..height = height.toInt()
       ..style.width = '100%'
       ..style.height = '100%'
       ..style.objectFit = 'contain'
@@ -124,14 +124,14 @@ class CamcodeWeb {
     _webcamVideoElement.setAttribute('playsinline', 'true');
 
     imageElement = ImageElement()
-      ..width = 1920
-      ..height = 1080
+      ..width = width.toInt()
+      ..height = height.toInt()
       ..style.width = '100%'
       ..style.height = '100%';
 
     _canvasElement = CanvasElement(
-      width: 1920,
-      height: 1080,
+      width: width.toInt(),
+      height: height.toInt(),
     );
 
     final time = DateTime.now().microsecondsSinceEpoch;
@@ -241,10 +241,10 @@ class CamcodeWeb {
       case 1:
         context.drawImageScaledFromSource(
           _webcamVideoElement,
-          _webcamVideoElement.videoWidth * .2,
-          _webcamVideoElement.videoHeight * .4,
-          _webcamVideoElement.videoWidth * .6,
-          _webcamVideoElement.videoHeight * .2,
+          0,
+          0,
+          _webcamVideoElement.videoWidth,
+          _webcamVideoElement.videoHeight,
           0,
           0,
           _webcamVideoElement.width,
@@ -255,9 +255,9 @@ class CamcodeWeb {
         context.drawImageScaledFromSource(
           _webcamVideoElement,
           0,
-          _webcamVideoElement.videoHeight * .4,
+          0,
           _webcamVideoElement.videoWidth,
-          _webcamVideoElement.videoHeight * .2,
+          _webcamVideoElement.videoHeight,
           0,
           0,
           _webcamVideoElement.width,
@@ -287,7 +287,6 @@ class CamcodeWeb {
   Future<void> onBarcodeResult(String _barcode) async {
     _barcodeResults.add(_barcode);
     if (_barcodeResults.gotResult) {
-      releaseResources();
       if (!completer.isCompleted) {
         completer.complete(_barcodeResults.mostFrequentBarcode);
         _barcodeResults.clear();

@@ -32,9 +32,7 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('CamCode example app'),
         ),
-        body: Center(
-          child: Text(barcodeValue),
-        ),
+        body:CamCodeScannerPage(_onResult),
       ),
     );
   }
@@ -93,15 +91,15 @@ class _CamCodeScannerPageState extends State<CamCodeScannerPage> {
       body: Stack(
         children: [
           CamCodeScanner(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height,
+            width: 466,
+            height: 200,
             refreshDelayMillis: 16,
             onBarcodeResult: (barcode) {
-              Navigator.of(context).pop();
               widget.onResult(barcode);
             },
+            showScannerLine: false,
             controller: _controller,
-            showDebugFrames: true,
+            showDebugFrames: false,
           ),
           Positioned(
             bottom: 48.0,
