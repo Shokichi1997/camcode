@@ -90,16 +90,25 @@ class _CamCodeScannerPageState extends State<CamCodeScannerPage> {
     return Scaffold(
       body: Stack(
         children: [
-          CamCodeScanner(
-            width: 466,
-            height: 200,
-            refreshDelayMillis: 16,
-            onBarcodeResult: (barcode) {
-              widget.onResult(barcode);
-            },
-            showScannerLine: false,
-            controller: _controller,
-            showDebugFrames: false,
+          Center(
+            child: Container(
+              width: 800,
+              height: 200,
+              decoration: BoxDecoration(
+                border: Border.all(width: 1.0)
+              ),
+              child: CamCodeScanner(
+                width: 800,
+                height: 200,
+                refreshDelayMillis: 16,
+                onBarcodeResult: (barcode) {
+                  widget.onResult(barcode);
+                },
+                showScannerLine: false,
+                controller: _controller,
+                showDebugFrames: false,
+              ),
+            ),
           ),
           Positioned(
             bottom: 48.0,

@@ -114,24 +114,24 @@ class CamcodeWeb {
 
     // Create a video element which will be provided with stream source
     _webcamVideoElement = VideoElement()
-      ..width = width.toInt()
-      ..height = height.toInt()
+      ..width = 1920
+      ..height = 1080
       ..style.width = '100%'
       ..style.height = '100%'
-      ..style.objectFit = 'contain'
+      ..style.objectFit = 'cover'
       ..autoplay = true
       ..muted = true;
     _webcamVideoElement.setAttribute('playsinline', 'true');
 
     imageElement = ImageElement()
-      ..width = width.toInt()
-      ..height = height.toInt()
+      ..width = 1920
+      ..height = 1080
       ..style.width = '100%'
       ..style.height = '100%';
 
     _canvasElement = CanvasElement(
-      width: width.toInt(),
-      height: height.toInt(),
+      width: 1920,
+      height: 1080,
     );
 
     final time = DateTime.now().microsecondsSinceEpoch;
@@ -265,11 +265,6 @@ class CamcodeWeb {
         );
         break;
     }
-
-    debugPrint(
-        'Webcam taille : ${_webcamVideoElement.height} & ${_webcamVideoElement.width}');
-    debugPrint(
-        'Webcam video taille : ${_webcamVideoElement.videoHeight} & ${_webcamVideoElement.videoWidth}');
 
     final dataUrl = _canvasElement.toDataUrl('image/jpeg', 1.0);
     imageElement.src = dataUrl;
