@@ -116,6 +116,7 @@ class _CamCodeScannerState extends State<CamCodeScanner> {
     });
 
     _subscribeForResult();
+    widget.controller?._channelCompleter.complete(channel);
   }
 
   /// Listen platform result
@@ -216,25 +217,28 @@ class ScannerLine extends CustomPainter {
 /// Controller to control the camera from outside
 class CamCodeScannerController {
   /// Channel to communicate with the platform code
-  final MethodChannel _channelCompleter = MethodChannel('camcode');
+  final Completer<MethodChannel> _channelCompleter = Completer();
 
   /// Invoke this method to close the camera and release all resources
   Future<void> releaseResources() async {
-    return _channelCompleter.invokeMethod(
+    final _channel = await _channelCompleter.future;
+    return _channel.invokeMethod(
       'releaseResources',
     );
   }
 
   /// Waits for the device list completer result
   Future<List<String>> fetchDeviceList() async {
+    final _channel = await _channelCompleter.future;
     final devices =
-    await _channelCompleter.invokeMethod<List<dynamic>?>('fetchDeviceList');
+    await _channel.invokeMethod<List<dynamic>?>('fetchDeviceList');
     return devices?.map((e) => e.toString()).toList() ?? [];
   }
 
   /// Selects the device with the given device name
   Future<void> selectDevice(String device) async {
-    return _channelCompleter.invokeMethod(
+    final _channel = await _channelCompleter.future;
+    return _channel.invokeMethod(
       'selectDevice',
       device,
     );
