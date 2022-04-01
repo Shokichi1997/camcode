@@ -57,6 +57,7 @@ class CamCodeScanner extends StatefulWidget {
 class _CamCodeScannerState extends State<CamCodeScanner> {
   /// communication channel between widget and platform code
   final MethodChannel channel = MethodChannel('camcode');
+  final EventChannel eventChannel = EventChannel('camcode_event');
 
   /// Webcam widget to insert into the tree
   late Widget _webcamWidget;
@@ -70,6 +71,8 @@ class _CamCodeScannerState extends State<CamCodeScanner> {
   /// Used to know if camera is loading or initialized
   bool initialized = false;
 
+  StreamSubscription? _streamSubscription;
+
   @override
   void initState() {
     super.initState();
@@ -79,6 +82,7 @@ class _CamCodeScannerState extends State<CamCodeScanner> {
 
   @override
   void dispose() {
+    _streamSubscription?.cancel();
     channel.invokeMethod(
       'releaseResources',
     );
@@ -111,16 +115,14 @@ class _CamCodeScannerState extends State<CamCodeScanner> {
       initialized = true;
     });
 
-    _waitForResult();
-    widget.controller?._channelCompleter.complete(channel);
+    _subscribeForResult();
   }
 
-  /// Waits for the platform completer result
-  void _waitForResult() {
-    channel.invokeMethod<String>('fetchResult').then((barcode) {
-      if (barcode != null) {
-        onBarcodeResult(barcode);
-      }
+  /// Listen platform result
+  void _subscribeForResult() {
+    _streamSubscription?.cancel();
+    _streamSubscription = eventChannel.receiveBroadcastStream().listen((onData) {
+      onBarcodeResult(onData);
     });
   }
 
@@ -144,36 +146,36 @@ class _CamCodeScannerState extends State<CamCodeScanner> {
           builder: (context) => Center(
             child: initialized
                 ? Stack(
-                    children: <Widget>[
-                      SizedBox(
-                        width: widget.width,
-                        height: widget.height,
-                        child: _webcamWidget,
+              children: <Widget>[
+                SizedBox(
+                  width: widget.width,
+                  height: widget.height,
+                  child: _webcamWidget,
+                ),
+                if (widget.showDebugFrames)
+                  Positioned(
+                    top: widget.height * .4,
+                    left: 0,
+                    child: SizedBox(
+                      width: widget.width,
+                      height: widget.height * .2,
+                      child: _imageWidget,
+                    ),
+                  ),
+                if (widget.showScannerLine)
+                  Center(
+                    child: CustomPaint(
+                      size: Size(
+                        widget.width,
+                        widget.height * .2,
                       ),
-                      if (widget.showDebugFrames)
-                        Positioned(
-                          top: widget.height * .4,
-                          left: 0,
-                          child: SizedBox(
-                            width: widget.width,
-                            height: widget.height * .2,
-                            child: _imageWidget,
-                          ),
-                        ),
-                      if (widget.showScannerLine)
-                        Center(
-                          child: CustomPaint(
-                            size: Size(
-                              widget.width,
-                              widget.height * .2,
-                            ),
-                            painter: ScannerLine(
-                              color: Colors.red,
-                            ),
-                          ),
-                        ),
-                    ],
-                  )
+                      painter: ScannerLine(
+                        color: Colors.red,
+                      ),
+                    ),
+                  ),
+              ],
+            )
                 : CircularProgressIndicator(),
           ),
         ),
@@ -214,28 +216,25 @@ class ScannerLine extends CustomPainter {
 /// Controller to control the camera from outside
 class CamCodeScannerController {
   /// Channel to communicate with the platform code
-  final Completer<MethodChannel> _channelCompleter = Completer();
+  final MethodChannel _channelCompleter = MethodChannel('camcode');
 
   /// Invoke this method to close the camera and release all resources
   Future<void> releaseResources() async {
-    final _channel = await _channelCompleter.future;
-    return _channel.invokeMethod(
+    return _channelCompleter.invokeMethod(
       'releaseResources',
     );
   }
 
   /// Waits for the device list completer result
   Future<List<String>> fetchDeviceList() async {
-    final _channel = await _channelCompleter.future;
     final devices =
-        await _channel.invokeMethod<List<dynamic>?>('fetchDeviceList');
+    await _channelCompleter.invokeMethod<List<dynamic>?>('fetchDeviceList');
     return devices?.map((e) => e.toString()).toList() ?? [];
   }
 
   /// Selects the device with the given device name
   Future<void> selectDevice(String device) async {
-    final _channel = await _channelCompleter.future;
-    return _channel.invokeMethod(
+    return _channelCompleter.invokeMethod(
       'selectDevice',
       device,
     );

@@ -10,7 +10,6 @@ import 'package:camcode/barcode_results.dart';
 import 'package:camcode/dart_ui_stub/dart_ui.dart' as ui;
 
 import 'package:camcode/barcode.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
@@ -25,8 +24,8 @@ class CamcodeWeb {
   /// timer shceduling the pictures treatment process
   late Timer _timer;
 
-  /// used to transmit result to the Widget via MethodChannel
-  late Completer<String> completer;
+  /// used to transmit result to the Widget via PluginEventChannel
+  late StreamController<String> eventHandler;
 
   /// bacode results container
   final BarcodeResults _barcodeResults = BarcodeResults();
@@ -56,8 +55,17 @@ class CamcodeWeb {
       registrar as BinaryMessenger,
     );
 
+    final eventChannel = PluginEventChannel(
+      'camcode_event',
+      const StandardMethodCodec(),
+      // ignore: unnecessary_cast
+      registrar as BinaryMessenger,
+    );
+
     final pluginInstance = CamcodeWeb();
     channel.setMethodCallHandler(pluginInstance.handleMethodCall);
+    pluginInstance.eventHandler = StreamController<String>.broadcast();
+    eventChannel.setController(pluginInstance.eventHandler);
   }
 
   /// handle channel calls
@@ -72,8 +80,6 @@ class CamcodeWeb {
         );
       case 'releaseResources':
         return releaseResources();
-      case 'fetchResult':
-        return fetchResult();
       case 'fetchDeviceList':
         return fetchDevices();
       case 'selectDevice':
@@ -84,11 +90,6 @@ class CamcodeWeb {
           details: 'camcode for web doesn\'t implement \'${call.method}\'',
         );
     }
-  }
-
-  /// wait for the result to be completed
-  Future<String> fetchResult() {
-    return completer.future;
   }
 
   /// wait for the list of devices to be completed
@@ -104,13 +105,11 @@ class CamcodeWeb {
   /// - start video streaming
   /// - start picture snapshot timer scheduling
   int initialize(
-    double width,
-    double height,
-    int refreshDelayMillis,
-  ) {
-    completer = Completer<String>();
+      double width,
+      double height,
+      int refreshDelayMillis,
+      ) {
     _enumerateDevicesCompleter = Completer<List<String>>();
-    _barcodeResults.clear();
 
     // Create a video element which will be provided with stream source
     _webcamVideoElement = VideoElement()
@@ -139,12 +138,12 @@ class CamcodeWeb {
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
       'webcamVideoElement$time',
-      (int viewId) => _webcamVideoElement,
+          (int viewId) => _webcamVideoElement,
     );
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
       'imageElement',
-      (int viewId) => imageElement,
+          (int viewId) => imageElement,
     );
 
     // Access the webcam stream
@@ -181,7 +180,7 @@ class CamcodeWeb {
         'audio': false,
         'video': {
           'deviceId':
-              _selectedDeviceId != null ? {'exact': _selectedDeviceId} : null,
+          _selectedDeviceId != null ? {'exact': _selectedDeviceId} : null,
           'facingMode': {'exact': 'environment'},
         }
       };
@@ -190,7 +189,7 @@ class CamcodeWeb {
         'audio': false,
         'video': {
           'deviceId':
-              _selectedDeviceId != null ? {'exact': _selectedDeviceId} : null,
+          _selectedDeviceId != null ? {'exact': _selectedDeviceId} : null,
         }
       };
     }
@@ -225,7 +224,7 @@ class CamcodeWeb {
       Duration(
         milliseconds: refreshDelayMillis,
       ),
-      (timer) {
+          (timer) {
         _takePicture();
       },
     );
@@ -282,10 +281,8 @@ class CamcodeWeb {
   Future<void> onBarcodeResult(String _barcode) async {
     _barcodeResults.add(_barcode);
     if (_barcodeResults.gotResult) {
-      if (!completer.isCompleted) {
-        completer.complete(_barcodeResults.mostFrequentBarcode);
-        _barcodeResults.clear();
-      }
+      eventHandler.add(_barcode);
+      _barcodeResults.clear();
     }
   }
 
