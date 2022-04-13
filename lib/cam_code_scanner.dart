@@ -83,9 +83,9 @@ class _CamCodeScannerState extends State<CamCodeScanner> {
   @override
   void dispose() {
     _streamSubscription?.cancel();
-    channel.invokeMethod(
-      'releaseResources',
-    );
+    // channel.invokeMethod(
+    //   'releaseResources',
+    // );
     super.dispose();
   }
 
