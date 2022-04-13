@@ -84,6 +84,10 @@ class CamcodeWeb {
         return fetchDevices();
       case 'selectDevice':
         return _selectDevice(call.arguments);
+      case 'pauseCamera':
+        return pauseCamera();
+      case 'resumeCamera':
+        return resumeCamera();
       default:
         throw PlatformException(
           code: 'Unimplemented',
@@ -298,5 +302,13 @@ class CamcodeWeb {
     _canvasElement.remove();
     _webcamVideoElement.remove();
     imageElement.remove();
+  }
+
+  void pauseCamera() {
+    _webcamVideoElement.pause();
+  }
+
+  void resumeCamera() {
+    _webcamVideoElement.play();
   }
 }
