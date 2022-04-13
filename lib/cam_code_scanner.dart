@@ -243,4 +243,16 @@ class CamCodeScannerController {
       device,
     );
   }
+
+  /// Invoke this method to pause camera
+  Future<void> pauseCamera() async {
+    final _channel = await _channelCompleter.future;
+    return _channel.invokeMethod('pauseCamera');
+  }
+
+  /// Invoke this method to play camera
+  Future<void> playCamera() async {
+    final _channel = await _channelCompleter.future;
+    return _channel.invokeMethod('resumeCamera');
+  }
 }
