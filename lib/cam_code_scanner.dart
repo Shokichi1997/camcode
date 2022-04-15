@@ -116,7 +116,9 @@ class _CamCodeScannerState extends State<CamCodeScanner> {
     });
 
     _subscribeForResult();
-    widget.controller?._channelCompleter.complete(channel);
+    if (widget.controller?._channelCompleter.isCompleted != true) {
+      widget.controller?._channelCompleter.complete(channel);
+    }
   }
 
   /// Listen platform result
