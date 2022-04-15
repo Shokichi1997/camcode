@@ -121,6 +121,20 @@ class _CamCodeScannerPageState extends State<CamCodeScannerPage> {
                   },
                   child: Text('Release resources'),
                 ),
+                const SizedBox(width: 12.0),
+                ElevatedButton(
+                  onPressed: () {
+                    _controller.pauseCamera();
+                  },
+                  child: Text('Pause'),
+                ),
+                const SizedBox(width: 12.0),
+                ElevatedButton(
+                  onPressed: () {
+                    _controller.playCamera();
+                  },
+                  child: Text('Play'),
+                ),
                 cameraNames.isEmpty
                     ? Container()
                     : DropdownButton(

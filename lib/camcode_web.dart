@@ -46,6 +46,10 @@ class CamcodeWeb {
   int counter = 0;
   int maxAttempt = 4;
 
+  double width = 0;
+  double height = 0;
+  int refreshDelayMillis = 0;
+
   /// Registering method
   static void registerWith(Registrar registrar) {
     final channel = MethodChannel(
@@ -113,6 +117,10 @@ class CamcodeWeb {
       double height,
       int refreshDelayMillis,
       ) {
+    this.width = width;
+    this.height = height;
+    this.refreshDelayMillis = refreshDelayMillis;
+
     _enumerateDevicesCompleter = Completer<List<String>>();
 
     // Create a video element which will be provided with stream source
@@ -292,6 +300,14 @@ class CamcodeWeb {
 
   /// Release resources to avoid leaks
   void releaseResources() {
+    pauseCamera();
+    _canvasElement.remove();
+    _webcamVideoElement.remove();
+    imageElement.remove();
+  }
+
+  /// Turn off camera and stop scan
+  void pauseCamera() {
     _timer.cancel();
     _webcamVideoElement.pause();
     _webcamVideoElement.srcObject?.getTracks().forEach((track) {
@@ -299,16 +315,14 @@ class CamcodeWeb {
       track.enabled = false;
     });
     _webcamVideoElement.srcObject = null;
-    _canvasElement.remove();
-    _webcamVideoElement.remove();
-    imageElement.remove();
   }
 
-  void pauseCamera() {
-    _webcamVideoElement.pause();
-  }
-
+  /// Resume turn on camera and scan
   void resumeCamera() {
-    _webcamVideoElement.play();
+    _setupMediaStream(width, height);
+
+    Future.delayed(Duration(seconds: 1), () {
+      _scan(refreshDelayMillis);
+    });
   }
 }
