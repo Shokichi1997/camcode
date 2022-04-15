@@ -92,6 +92,10 @@ class CamcodeWeb {
         return pauseCamera();
       case 'resumeCamera':
         return resumeCamera();
+      case 'stopCamera':
+        return stopCamera();
+      case 'playCamera':
+        return playCamera();
       default:
         throw PlatformException(
           code: 'Unimplemented',
@@ -300,14 +304,28 @@ class CamcodeWeb {
 
   /// Release resources to avoid leaks
   void releaseResources() {
-    pauseCamera();
+    stopCamera();
     _canvasElement.remove();
     _webcamVideoElement.remove();
     imageElement.remove();
   }
 
-  /// Turn off camera and stop scan
+  /// PauseCamera
   void pauseCamera() {
+    _webcamVideoElement.pause();
+  }
+
+  /// Resume camera from pause state
+  void resumeCamera() {
+    _setupMediaStream(width, height);
+
+    Future.delayed(Duration(seconds: 1), () {
+      _scan(refreshDelayMillis);
+    });
+  }
+
+  /// Turn off camera and stop scan
+  void stopCamera() {
     _timer.cancel();
     _webcamVideoElement.pause();
     _webcamVideoElement.srcObject?.getTracks().forEach((track) {
@@ -318,7 +336,7 @@ class CamcodeWeb {
   }
 
   /// Resume turn on camera and scan
-  void resumeCamera() {
+  void playCamera() {
     _setupMediaStream(width, height);
 
     Future.delayed(Duration(seconds: 1), () {
