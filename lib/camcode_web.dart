@@ -16,7 +16,7 @@ import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 /// A web implementation of the Camcode plugin.
 class CamcodeWeb {
   /// VideoElement used to display the camera image
-  late VideoElement _webcamVideoElement;
+  static VideoElement? _webcamVideoElement;
 
   /// ImageElement used to display taken pictures
   late ImageElement imageElement;
@@ -136,7 +136,7 @@ class CamcodeWeb {
       ..style.objectFit = 'cover'
       ..autoplay = true
       ..muted = true;
-    _webcamVideoElement.setAttribute('playsinline', 'true');
+    _webcamVideoElement?.setAttribute('playsinline', 'true');
 
     imageElement = ImageElement()
       ..width = 1920
@@ -154,7 +154,7 @@ class CamcodeWeb {
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
       'webcamVideoElement$time',
-          (int viewId) => _webcamVideoElement,
+          (int viewId) => _webcamVideoElement!,
     );
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
@@ -179,11 +179,11 @@ class CamcodeWeb {
       window.navigator.mediaDevices
           ?.getUserMedia(options)
           .then((MediaStream stream) {
-        _webcamVideoElement.srcObject = stream;
+        _webcamVideoElement?.srcObject = stream;
       });
     } else {
       window.navigator.getUserMedia(video: true).then((MediaStream stream) {
-        _webcamVideoElement.srcObject = stream;
+        _webcamVideoElement?.srcObject = stream;
       });
     }
   }
@@ -215,9 +215,10 @@ class CamcodeWeb {
   /// Selects a device with the given label
   void _selectDevice(String? deviceLabel) {
     _selectedDeviceId = _cameraDevices[deviceLabel];
+    if (_webcamVideoElement == null) return;
     _setupMediaStream(
-      _webcamVideoElement.width.toDouble(),
-      _webcamVideoElement.height.toDouble(),
+      _webcamVideoElement!.width.toDouble(),
+      _webcamVideoElement!.height.toDouble(),
     );
   }
 
@@ -251,32 +252,33 @@ class CamcodeWeb {
   Future<void> _takePicture() async {
     final context = _canvasElement.context2D;
     // context.filter = 'grayscale(1)';
+    if (_webcamVideoElement == null) return;
 
     switch (frameSize) {
       case 1:
         context.drawImageScaledFromSource(
-          _webcamVideoElement,
+          _webcamVideoElement!,
           0,
           0,
-          _webcamVideoElement.videoWidth,
-          _webcamVideoElement.videoHeight,
+          _webcamVideoElement!.videoWidth,
+          _webcamVideoElement!.videoHeight,
           0,
           0,
-          _webcamVideoElement.width,
-          _webcamVideoElement.height,
+          _webcamVideoElement!.width,
+          _webcamVideoElement!.height,
         );
         break;
       default:
         context.drawImageScaledFromSource(
-          _webcamVideoElement,
+          _webcamVideoElement!,
           0,
           0,
-          _webcamVideoElement.videoWidth,
-          _webcamVideoElement.videoHeight,
+          _webcamVideoElement!.videoWidth,
+          _webcamVideoElement!.videoHeight,
           0,
           0,
-          _webcamVideoElement.width,
-          _webcamVideoElement.height,
+          _webcamVideoElement!.width,
+          _webcamVideoElement!.height,
         );
         break;
     }
@@ -306,13 +308,13 @@ class CamcodeWeb {
   void releaseResources() {
     stopCamera();
     _canvasElement.remove();
-    _webcamVideoElement.remove();
+    _webcamVideoElement!.remove();
     imageElement.remove();
   }
 
   /// PauseCamera
   void pauseCamera() {
-    _webcamVideoElement.pause();
+    _webcamVideoElement!.pause();
   }
 
   /// Resume camera from pause state
@@ -327,12 +329,12 @@ class CamcodeWeb {
   /// Turn off camera and stop scan
   void stopCamera() {
     _timer.cancel();
-    _webcamVideoElement.pause();
-    _webcamVideoElement.srcObject?.getTracks().forEach((track) {
+    _webcamVideoElement!.pause();
+    _webcamVideoElement!.srcObject?.getTracks().forEach((track) {
       track.stop();
       track.enabled = false;
     });
-    _webcamVideoElement.srcObject = null;
+    _webcamVideoElement!.srcObject = null;
   }
 
   /// Resume turn on camera and scan
