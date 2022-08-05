@@ -84,3 +84,6 @@ ElevatedButton(
 ```
 
 > Calling this method will close the camera and stop the scanner process
+
+## Foke version
+- Custom UI
